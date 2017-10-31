@@ -12,6 +12,8 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+const querystring = require('querystring');
+
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -28,9 +30,30 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-
+  
   // The outgoing status.
   var statusCode = 200;
+ 
+
+  console.log(request.url, request.method);
+
+  if (request.method === 'GET') {
+    statusCode = 200;
+  }
+  if (request.method === 'POST') {
+    statusCode = 201;
+  }
+
+  // if (urlPrefix !== '/classes/messages') {
+  //   statusCode = 404;
+  // }
+
+  var defaultCorsHeaders = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  };
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
@@ -39,7 +62,7 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -52,7 +75,36 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  
+  var messages = {
+    results: [{username: 'Bernie', text: 'hello', roomname: 'Lobby'},
+    {username: 'Bernie', text: 'hello', roomname: 'Lobby'},
+    {username: 'Bernie', text: 'hello', roomname: 'Lobby'}
+    ]
+  };
+
+  if (request.method === 'GET') {
+    response.end(JSON.stringify(messages));
+  }
+
+  if (request.method === 'POST') {
+    
+    var body = [];
+
+    request.on('data', (chunk) => {
+      body.push(chunk);
+    }).on('end', () => {
+      body = Buffer.concat(body).toString();
+      body = querystring.parse(body);
+      messages.results.push(body);
+      console.log(messages);
+    });
+    
+  }
+
+// response.end() -> inputs are the data that is returned from the AJAX call
+
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -64,10 +116,6 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
+module.exports.requestHandler = requestHandler;
 
