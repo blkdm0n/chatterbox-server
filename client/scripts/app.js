@@ -30,9 +30,9 @@ var app = {
     app.fetch(false);
 
     // Poll for new messages
-    setInterval(function() {
-      app.fetch(true);
-    }, 2500);
+    // setInterval(function() {
+    //   app.fetch(true);
+    // }, 2500);
   },
 
   send: function(message) {
@@ -42,7 +42,7 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'POST',
-      data: message,
+      data: message,      
       contentType: 'text/plain',
       success: function (data) {
         console.log('post went through');
@@ -50,7 +50,9 @@ var app = {
         app.$message.val('');
 
         // Trigger a fetch to update the messages, pass true to animate
+        
         app.fetch();
+        console.log('---->>>>>fetching');
       },
       error: function (error) {
         console.error('chatterbox: Failed to send message', error);
@@ -65,35 +67,36 @@ var app = {
       //data: { order: '-createdAt' },
       contentType: 'text/plain',
       success: function(data) {
+
         // why don't we have to parse the JSON
 
         // Don't bother if we have nothing to work with
         //console.log("-----> ", data.results[0].roomname);
-        
+
         if (!data.results || !data.results.length) {
           return;
         }
 
         // Store messages for caching later
         app.messages = data.results;
-        //console.log(app.messages);
+        console.log('got messages------->', data.results);
 
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
         
         // Only bother updating the DOM if we have a new message
-        if (mostRecentMessage.objectId !== app.lastMessageId) {
+    //   if (mostRecentMessage.objectId || mostRecentMessage.objectId !== app.lastMessageId) {
           
           // Update the UI with the fetched rooms
-          app.renderRoomList(data.results);
+        app.renderRoomList(data.results);
 
           // Update the UI with the fetched messages
-          app.renderMessages(data.results, animate);
+        app.renderMessages(data.results, animate);
 
           // Store the ID of the most recent message
-          app.lastMessageId = mostRecentMessage.objectId;
+          // app.lastMessageId = mostRecentMessage.objectId;
           //console.log(app.lastMessageId);
-        }
+    //    }
       },
       error: function(error) {
         console.error('chatterbox: Failed to fetch messages', error);
